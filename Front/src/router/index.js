@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ChatView from "@/views/ChatView.vue";
 import NotFound from "@/views/NotFound.vue";
+import ChatJoin from "@/components/chat/ChatJoin.vue";
 
 Vue.use(VueRouter)
 
@@ -15,6 +16,10 @@ const routes = [
   {
     path: '/room/:roomId',
     component: ChatView,
+  },
+  {
+    path: '/join/room/:roomId',
+    component: ChatJoin,
   },
   {
     path: '/*',

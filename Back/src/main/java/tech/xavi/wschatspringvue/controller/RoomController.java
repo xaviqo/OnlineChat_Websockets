@@ -22,7 +22,7 @@ public class RoomController {
 
     @PostMapping("join")
     public ResponseEntity<?> joinRoom(@RequestBody JoinRoomDto dto){
-        return null;
+        return new ResponseEntity<>(roomService.joinRoom(dto), HttpStatus.CREATED);
     }
 
 }

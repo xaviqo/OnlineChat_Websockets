@@ -37,6 +37,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(upat);
             }
         } catch (Exception e) {
+            e.getStackTrace();
         }
         filterChain.doFilter(request, response);
     }

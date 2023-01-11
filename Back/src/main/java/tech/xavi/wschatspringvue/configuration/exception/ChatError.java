@@ -16,7 +16,10 @@ public enum ChatError {
     ChatUsersLimit("006","Rooms are limited to "+Globals.MAX_ROOM_USERS+" users"),
     ChatUsersMinimum2("007","The minimum room size is 2 users"),
     InvalidAvatar("008","The specified avatar is not available"),
-    RoomIdNotFound("009","There is no chat room with this id")
+    RoomIdNotFound("009","There is no chat room with this id"),
+    RoomIsFull("010","Room is full, try again later"),
+    IncorrectRoomPassword("011","Incorrect password, please try again"),
+    UserNotInscribed("012","You are not connected to this room")
     ;
 
     private final String code;

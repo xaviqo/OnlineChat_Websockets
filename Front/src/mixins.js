@@ -10,23 +10,17 @@ export const mixins = {
         isSessionSetted() {
             return (localStorage.getItem(SESSION_NAME) != null)
         },
+        getChatId(){
+            return JSON.parse(localStorage.getItem(SESSION_NAME)).chatId;
+        },
         getSession(){
             return JSON.parse(localStorage.getItem(SESSION_NAME));
-        },
-        getChatId(){
-            return JSON.parse(localStorage.getItem(SESSION_NAME)).id;
         },
         getNickname(){
             return JSON.parse(localStorage.getItem(SESSION_NAME)).userNickname;
         },
         getUserId(){
             return JSON.parse(localStorage.getItem(SESSION_NAME)).userId;
-        },
-        getRoomTopic(){
-            return JSON.parse(localStorage.getItem(SESSION_NAME)).roomTopic;
-        },
-        getRoomPassword(){
-            return JSON.parse(localStorage.getItem(SESSION_NAME)).password;
         },
         getAvatarUrl(){
             return JSON.parse(localStorage.getItem(SESSION_NAME)).avatarUrl;
@@ -36,6 +30,12 @@ export const mixins = {
         },
         getRefreshToken(){
             return JSON.parse(localStorage.getItem(SESSION_NAME))['tokenPayload'].refreshToken;
+        },
+        avatarizeNickname(nickname,style){
+            return `https://avatars.dicebear.com/api/${style}/${nickname}.svg`
+        },
+        isMyId(id){
+            return (id == this.getUserId());
         }
     }
 }

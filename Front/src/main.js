@@ -10,6 +10,28 @@ import VueAxios from 'vue-axios'
 Vue.use(VueAxios,axios);
 
 const BASE_URL = 'http://localhost:8080'
+const SESSION_NAME = 'ffchat_session';
+
+axios.interceptors.request.use(
+    async config => {
+      const ls = JSON.parse(localStorage.getItem(SESSION_NAME));
+
+      if (ls){
+        config.headers = {
+          'Authorization': `Bearer ${ls['tokenPayload'].accessToken}`,
+          'Accept': 'application/json',
+        }
+      } else {
+        config.headers = {
+          'Accept': 'application/json',
+        }
+      }
+
+      return config;
+    },
+    error => {
+      Promise.reject(error)
+    });
 
 axios.defaults.baseURL = BASE_URL;
 

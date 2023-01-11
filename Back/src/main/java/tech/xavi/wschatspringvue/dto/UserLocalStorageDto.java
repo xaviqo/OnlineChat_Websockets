@@ -11,13 +11,10 @@ import tech.xavi.wschatspringvue.model.TokenPayload;
 @AllArgsConstructor
 @Builder
 public class UserLocalStorageDto {
-    private String id;
     private String userId;
     private String userNickname;
-    private String roomTopic;
     private int usersLimit;
     private TokenPayload tokenPayload;
     private String avatarUrl;
-    private String password;
-
+    private String chatId;
 }

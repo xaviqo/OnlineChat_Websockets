@@ -18,67 +18,6 @@
         <ChatConfiguration></ChatConfiguration>
       </v-col>
     </v-row>
-    <!--DIALOG-->
-    <template>
-      <v-row justify="center">
-        <v-dialog
-            v-model="notConnectedDialog"
-            persistent
-            max-width="30vw"
-        >
-          <v-card>
-            <v-card-title class="text-h5" v-if="!roomCfg.full">
-              <v-icon class="mr-3" large>mdi-chat-question-outline</v-icon>
-              Do you want to join this chat room?
-            </v-card-title>
-            <v-card-title class="text-h5" v-else>
-              <v-icon class="mr-3" large>mdi-emoticon-sad-outline</v-icon>
-              We are sorry but the room is full, try again later
-            </v-card-title>
-            <v-row v-if="!roomCfg.full" class="ma-4">
-              <v-col>
-                <v-text-field
-                    prepend-inner-icon="mdi-account"
-                    v-model="joinDto.nickname"
-                    :rules="rules.name"
-                    label="Your nickname"
-                    required
-                    filled
-                ></v-text-field>
-              </v-col>
-              <v-col v-if="roomCfg.hasPassword">
-                <v-text-field
-                    prepend-inner-icon="mdi-lock"
-                    v-model="joinDto.password"
-                    :rules="rules.password"
-                    label="Room password"
-                    required
-                    filled
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn
-                  color="green darken-1"
-                  text
-                  @click="$router.push(`/`);"
-              >
-                Exit
-              </v-btn>
-              <v-btn
-                  color="green darken-1"
-                  text
-                  @click="notConnectedDialog = false"
-                  v-if="!roomCfg.full"
-              >
-                Join
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-row>
-    </template>
   </div>
 </template>
 <style>
@@ -110,71 +49,44 @@ export default {
     validConnection: true,
     socket: null,
     stompClient: null,
-    chatMessages: [],
-    chatUsers: [],
-    notConnectedDialog: false,
-    roomCfg: {
-      hasPassword: false,
-      full: false
-    },
-    joinDto: {
-      nickname: '',
-      password: ''
-    },
-    rules: {
-      name: [
-        v => !!v || 'Nickname is required',
-        v => !(v && v.length > 14) || 'Nickname must be less than 14 characters',
-        v => !(v && v.length < 4) || 'Nickname must be at least 4 characters',
-      ],
-      password: [
-          v => !!v || 'Password is requited'
-      ]
-    },
+    chatUsers: []
   }),
   created() {
     this.existsRoom();
 
-    if (this.isSessionSetted() && !this.roomMatch()) {
-      this.validConnection = false;
-      EventBus.$emit('showAlert', {
-        color: "error",
-        type: "error",
-        msg: `You cannot access this chat room.`
-      });
-      this.$router.push(`/404`);
+    if (this.isSessionSetted()){
+      //si está inscrito checkear si está en la sala y tomar accion
+      this.isUserInscribed();
+    } else {
+      this.$router.push("/join/room/"+this.$route.params.roomId);
     }
 
-    if (!this.isSessionSetted()){
-      this.validConnection = false;
-      this.notConnectedDialog = true;
-    }
-    //this.myId = this.getUserId(); <-- En principio no se usa, borrar si veo que no afecta a nada
+    EventBus.$on('chatInput_chatView_sendMessage', msg => {
+      this.sendMessage(msg);
+    });
+
     dayjs.extend(relativeTime);
-
     if (this.validConnection) this.connectsWS();
   },
   methods: {
     connectsWS(){
-      this.socket = new SockJS('http://localhost:9876/websocket', null, {
+      this.socket = new SockJS('http://localhost:8080/websocket', null, {
         sessionId: () => {
-          return this.getChatId() + ":" + this.getUserId() + ":" + this.getNickname() + ":" + Math.floor(Math.random() * 99999);
+          return this.$route.params.roomId + ":" + this.getUserId() + ":" + this.getNickname() + ":" + Math.floor(Math.random() * 99999);
         }
       });
       this.stompClient = Stomp.over(this.socket);
       //this.stompClient.debug = () => { };
       this.stompClient.connect({
             senderId: this.getUserId(),
-            token: this.token,
-            senderNickname: this.getNickname(),
-            lobby: this.getChatId(),
+            token: this.getAccessToken(),
+            senderName: this.getNickname(),
+            roomId: this.$route.params.roomId,
           },
           frame => {
-            this.stompClient.subscribe(`/topic/messages/${this.getChatId()}`, tick => {
-              console.log(JSON.parse(tick.body))
-              //this.filterLobbyInteraction(JSON.parse(tick.body));
+            this.stompClient.subscribe(`/topic/messages/${this.$route.params.roomId}`, tick => {
+              EventBus.$emit('chatView_chatMessages_filterMessage', JSON.parse(tick.body));
             });
-            //EventBus.$emit('reloadPlayersInLobby');
           },
           error => {
             EventBus.$emit('showAlert', {
@@ -184,35 +96,39 @@ export default {
             });
           });
     },
-    roomMatch() {
-      return (this.$route.params.roomId.toUpperCase() === this.getChatId().toUpperCase());
+    sendMessage(message){
+      //TODO: https://stomp-js.github.io/stomp-websocket/codo/class/Client.html#send-dynamic
+      // MIRAR LO DEL BODY
+      this.stompClient.send(`/ws/chat/${this.$route.params.roomId}`,
+          JSON.stringify({
+            senderId: this.getUserId(),
+            senderName: this.getNickname(),
+            message: message
+          }),"");
     },
     existsRoom(){
       this.axios
-        .get(`/v1/cfg/check/${this.$route.params.roomId}`)
-        .then((res) => {
-          this.roomCfg = res.data;
-          if (this.roomCfg.full){
+          .get(`/v1/check/room-status/${this.$route.params.roomId}`)
+          .catch((e) => {
             EventBus.$emit('showAlert', {
-              color: "info",
-              type: "info",
-              msg: `The room is full, try again later`
+              color: "error",
+              type: "error",
+              msg: `Error ${e.response.data.code}. ${e.response.data.message}`
             });
-          }
-        })
-        .catch((e) => {
-          EventBus.$emit('showAlert', {
-            color: "error",
-            type: "error",
-            msg: `Error ${e.response.data.code}. ${e.response.data.message}`
+            this.$router.push(`/404`);
           });
-          this.$router.push(`/404`);
-        });
     },
-
-    handleRoomCfg(){
-
-    }
+    isUserInscribed(){
+      this.axios
+          .get(`/v1/check/user-inscribed/${this.$route.params.roomId}`)
+          .then((res) => {
+            this.validConnection = true;
+          })
+          .catch((e) => {
+            this.validConnection = false;
+            this.$router.push("/join/room/"+this.$route.params.roomId);
+          });
+    },
   }
 }
 </script>

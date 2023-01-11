@@ -51,7 +51,7 @@
                     class="lighten-2"
                     size="50">
                     <v-icon v-if="roomDto.adminNickname.length <= 3" x-large>mdi-help-circle-outline</v-icon>
-                    <v-img height="50" :src="avatarizeNickname(roomDto.adminNickname)" v-if="roomDto.adminNickname.length > 3"></v-img>
+                    <v-img height="50" :src="avatarizeNickname(roomDto.adminNickname,userAvatarStyle)" v-if="roomDto.adminNickname.length > 3"></v-img>
                   </v-avatar>
                 </v-col>
                 <v-col cols="1">
@@ -216,9 +216,6 @@ export default {
             this.avatarStyles = res.data;
             this.newAvatarStyle('');
           });
-    },
-    avatarizeNickname(nickname){
-      return `https://avatars.dicebear.com/api/${this.userAvatarStyle}/${nickname}.svg`
     },
     newAvatarStyle(actualStyle){
       const totalStyles = this.avatarStyles.length;

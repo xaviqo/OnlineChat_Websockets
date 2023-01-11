@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import tech.xavi.wschatspringvue.configuration.jwt.AccessTokenFilter;
 import tech.xavi.wschatspringvue.configuration.jwt.JwtEntryPoint;
+import tech.xavi.wschatspringvue.model.Role;
 import tech.xavi.wschatspringvue.service.ChatUserDetailsService;
 
 import java.util.Arrays;
@@ -59,8 +60,11 @@ public class ChatSecurity extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
+                .antMatchers("/websocket/**").permitAll()
                 .antMatchers("/v1/room/**").permitAll()
                 .antMatchers("/v1/cfg/**").permitAll()
+                .antMatchers("/v1/check/room-status/**").permitAll()
+                .antMatchers("/v1/check/user-inscribed/**").hasRole(Role.ROLE_USER.getRole())
                 .anyRequest().authenticated();
 
         httpSecurity.addFilterBefore(accessTokenFilter(), UsernamePasswordAuthenticationFilter.class);

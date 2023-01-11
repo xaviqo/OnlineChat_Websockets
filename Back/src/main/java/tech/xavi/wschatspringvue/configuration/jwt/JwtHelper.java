@@ -17,7 +17,7 @@ import java.util.UUID;
 @Component
 public class JwtHelper {
 
-    private static final String issuer = "XaviTech_Chat_WSSBV";
+    private static final String issuer = "XaviTechChatWSSBV";
 
     private final long accessTokenExpirationMs;
     private final long refreshTokenExpirationMs;
@@ -93,7 +93,6 @@ public class JwtHelper {
     }
 
     public String getTokenIdFromRefreshToken(String token) {
-        System.out.println();
         return decodeRefreshToken(token).get().getClaim("tokenId").asString();
     }
 }

@@ -1,8 +1,8 @@
 package tech.xavi.wschatspringvue.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import tech.xavi.wschatspringvue.entity.ChatRoom;
 
-public interface RoomRepository extends JpaRepository<ChatRoom,String> {
+public interface RoomRepository extends MongoRepository<ChatRoom, String> {
 
 }
